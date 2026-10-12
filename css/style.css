@@ -162,9 +162,25 @@ input[type=color] { width: 100%; height: 36px; border: 1px solid var(--line); bo
 .variant { position: relative; width: 64px; height: 64px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
 .variant canvas { width: 100%; height: 100%; }
 .variant .x { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: var(--danger); color: #fff; cursor: pointer; line-height: 1; padding: 0; }
-.ed-test { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-.test-wrap { background: #fff; border-radius: 8px; border: 1px solid var(--line); }
+.ed-test { display: flex; flex-direction: column; gap: 6px; }
+.test-wrap { max-width: 700px; background: #fff; border-radius: 8px; border: 1px solid var(--line); }
 .test-wrap canvas { width: 100%; height: auto; display: block; }
+
+/* ---- режим «лист» ---- */
+.ed-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 14px 0 10px; }
+.segmented.two { grid-template-columns: 1fr 1fr; min-width: min(100%, 520px); }
+.sheet-hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--accent-soft); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.cell { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cell.done { border-color: #9fc29f; }
+.cell-head { display: flex; align-items: center; gap: 6px; padding: 4px 6px 2px 10px; color: #333; }
+.cell-head b { font-size: 16px; }
+.cell-count { flex: 1; font-size: 12px; color: #2e7d32; }
+.cell-btn { border: 1px solid #ddd; background: #fafafa; color: #333; width: 28px; height: 28px; border-radius: 7px; cursor: pointer; padding: 0; font-size: 16px; line-height: 1; }
+.cell canvas { display: block; width: 100%; aspect-ratio: 1; touch-action: none; cursor: crosshair; }
+canvas#ed-pad, .cell canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body.pen-only .cell canvas { touch-action: pan-y; }
+.editor .ed-test { background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-top: 20px; }
 
 /* ---- прочее ---- */
 dialog { border: 0; border-radius: 16px; max-width: 620px; padding: 22px 26px; background: var(--panel); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.3); }

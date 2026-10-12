@@ -19,9 +19,18 @@
     init(opts) {
       Object.assign(this, opts);
       const pad = (this.pad = $('ed-pad'));
-      pad.addEventListener('pointerdown', (e) => this.down(e));
-      pad.addEventListener('pointermove', (e) => this.move(e));
-      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => pad.addEventListener(t, () => (this.cur = null)));
+      this.bindPad(pad, {
+        start: (p) => {
+          this.cur = [p];
+          this.strokes.push(this.cur);
+          this.redraw();
+        },
+        add: (p) => {
+          this.cur.push(p);
+          this.redraw();
+        },
+        end: () => (this.cur = null),
+      });
       new ResizeObserver(() => this.resize()).observe($('ed-pad-wrap'));
 
       $('ed-undo').onclick = () => this.undo();
@@ -30,7 +39,10 @@
       $('ed-save-next').onclick = () => this.save(true);
       $('ed-prev').onclick = () => this.step(-1);
       $('ed-skip').onclick = () => this.step(1);
-      $('ed-ghost').onchange = () => this.redraw();
+      $('ed-ghost').onchange = () => {
+        this.redraw();
+        this.sizeSheet();
+      };
       $('ed-name').oninput = (e) => {
         this.hw.name = e.target.value || 'Без названия';
         this.persist();
@@ -43,8 +55,25 @@
       $('ed-add-char').onclick = () => this.addChar();
       $('ed-extra').addEventListener('keydown', (e) => e.key === 'Enter' && this.addChar());
 
+      // ---- режим «лист» (удобно на iPad) ----
+      document.querySelectorAll('input[name=edmode]').forEach((r) =>
+        r.addEventListener('change', () => r.checked && this.setMode(r.value))
+      );
+      $('ed-penonly').onchange = (e) => this.setPenOnly(e.target.checked);
+      $('sh-new').onclick = () => {
+        this.sheetActive = new Map();
+        this.renderSheet();
+        EZ.toast('Чистый лист: всё, что напишете, добавится новыми вариантами букв');
+      };
+      new ResizeObserver(() => this.sizeSheet()).observe($('sh-grid'));
+      let mode = 'single';
+      try {
+        mode = localStorage.getItem('ezwrite.edmode') || (matchMedia('(pointer: coarse)').matches ? 'sheet' : 'single');
+      } catch (e) {}
+      this.mode = mode;
+
       document.addEventListener('keydown', (e) => {
-        if ($('view-editor').hidden || !this.hw) return;
+        if ($('view-editor').hidden || !this.hw || this.mode !== 'single') return;
         if (e.target.closest('input, textarea, select')) return;
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -69,6 +98,8 @@
       $('ed-name').value = hw.name || '';
       $('ed-author').value = hw.author || '';
       this.tab = 0;
+      this.sheetActive = new Map();
+      this.setMode(this.mode);
       const firstEmpty = EZ.CORE_CHARS.split('').find((c) => !(hw.glyphs[c] && hw.glyphs[c].length));
       this.select(firstEmpty || 'а');
       this.resize();
@@ -92,9 +123,139 @@
       if (ti >= 0) this.tab = ti;
       this.renderTabs();
       this.renderTiles();
+      this.renderSheet();
       this.renderCurrent();
       this.redraw();
       this.renderTest();
+    },
+
+    setMode(mode) {
+      this.mode = mode;
+      try {
+        localStorage.setItem('ezwrite.edmode', mode);
+      } catch (e) {}
+      document.querySelectorAll('input[name=edmode]').forEach((r) => (r.checked = r.value === mode));
+      $('ed-single').hidden = mode !== 'single';
+      $('ed-sheet').hidden = mode !== 'sheet';
+      if (!this.hw) return;
+      if (mode === 'sheet') this.renderSheet();
+      else this.resize();
+    },
+
+    // ---------- лист с клетками для всех букв набора ----------
+    renderSheet() {
+      if (!this.hw || this.mode !== 'sheet') return;
+      const grid = $('sh-grid');
+      grid.innerHTML = '';
+      this.cells = [];
+      const chars = Array.from(this.charsets()[this.tab].chars);
+      if (!chars.length) grid.innerHTML = '<p class="muted">Добавьте свои символы во вкладке «Свои» в режиме «По одной букве».</p>';
+      chars.forEach((ch) => {
+        const el = document.createElement('div');
+        el.className = 'cell';
+        const head = document.createElement('div');
+        head.className = 'cell-head';
+        const label = document.createElement('b');
+        label.textContent = ch;
+        const count = document.createElement('span');
+        count.className = 'cell-count';
+        const more = document.createElement('button');
+        more.className = 'cell-btn';
+        more.textContent = '+';
+        more.title = 'Написать эту букву ещё раз (новый вариант)';
+        const del = document.createElement('button');
+        del.className = 'cell-btn';
+        del.textContent = '×';
+        del.title = 'Стереть то, что написано в этой клетке';
+        head.append(label, count, more, del);
+        const c = document.createElement('canvas');
+        el.append(head, c);
+        grid.appendChild(el);
+
+        const cell = { ch, el, canvas: c, count, cur: null };
+        this.cells.push(cell);
+        const variants = () => (this.hw.glyphs[ch] = this.hw.glyphs[ch] || []);
+        this.bindPad(c, {
+          start: (p) => {
+            let v = this.sheetActive.get(ch);
+            if (!v || !variants().includes(v)) {
+              v = { strokes: [] };
+              variants().push(v);
+              this.sheetActive.set(ch, v);
+            }
+            cell.cur = [p];
+            v.strokes.push(cell.cur);
+            this.drawCell(cell);
+          },
+          add: (p) => {
+            cell.cur.push(p);
+            this.drawCell(cell);
+          },
+          end: () => {
+            const v = this.sheetActive.get(ch);
+            if (v && v.strokes.length) v.strokes[v.strokes.length - 1] = cell.cur.map((p) => [r4(p[0]), r4(p[1]), r2(p[2])]);
+            cell.cur = null;
+            this.updateCellCount(cell);
+            this.sheetSave();
+          },
+        });
+        more.onclick = () => {
+          this.sheetActive.delete(ch);
+          this.drawCell(cell);
+        };
+        del.onclick = () => {
+          const v = this.sheetActive.get(ch);
+          if (!v) return;
+          const list = variants();
+          list.splice(list.indexOf(v), 1);
+          if (!list.length) delete this.hw.glyphs[ch];
+          this.sheetActive.delete(ch);
+          this.drawCell(cell);
+          this.updateCellCount(cell);
+          this.sheetSave();
+        };
+        this.updateCellCount(cell);
+      });
+      this.sizeSheet();
+    },
+
+    updateCellCount(cell) {
+      const n = (this.hw.glyphs[cell.ch] || []).length;
+      cell.count.textContent = n ? `✓ ${n}` : '';
+      cell.el.classList.toggle('done', n > 0);
+    },
+
+    sizeSheet() {
+      if (!this.cells) return;
+      const dpr = window.devicePixelRatio || 1;
+      for (const cell of this.cells) {
+        const w = cell.canvas.clientWidth;
+        if (!w) continue;
+        cell.canvas.width = cell.canvas.height = Math.round(w * dpr);
+        this.drawCell(cell);
+      }
+    },
+
+    drawCell(cell) {
+      const c = cell.canvas;
+      if (!c.width) return;
+      const ctx = c.getContext('2d');
+      const S = c.width;
+      const dpr = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, S, S);
+      this.drawGuides(ctx, S, dpr, cell.ch);
+      const v = this.sheetActive.get(cell.ch);
+      const ink = (this.getSettings && this.getSettings().ink) || '#1a3b8c';
+      if (v) EZ.drawGlyph(ctx, v, S, { color: ink, lw: Math.max(2, S / 70), pressure: 0.5 });
+    },
+
+    sheetSave() {
+      clearTimeout(this.sheetTimer);
+      this.sheetTimer = setTimeout(() => {
+        this.persist();
+        this.renderTabs();
+        this.renderTest();
+      }, 500);
     },
 
     step(d) {
@@ -109,43 +270,77 @@
     },
 
     // ---------- рисование ----------
-    point(e) {
-      const rect = this.pad.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      let p = 0.5;
-      if (e.pointerType === 'pen' && e.pressure > 0) p = e.pressure;
-      else if (this.last) {
-        // мышь/палец: имитируем нажим по скорости (быстрее = тоньше)
-        const dt = Math.max(1, e.timeStamp - this.last.t);
-        const v = (Math.hypot(x - this.last.x, y - this.last.y) * rect.width) / dt;
-        p = this.last.p * 0.7 + EZ.clamp(0.78 - v * 0.22, 0.25, 0.8) * 0.3;
-      }
-      this.last = { x, y, p, t: e.timeStamp };
-      return [x, y, p];
+    /**
+     * Подключает рисование к холсту. Мышь, палец и стилус (Apple Pencil).
+     * Если замечен стилус — касания пальцем/ладонью больше не рисуют.
+     */
+    bindPad(el, h) {
+      let drawing = false,
+        last = null;
+      const pt = (e) => {
+        const rect = el.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        let p = 0.5;
+        if (e.pointerType === 'pen' && e.pressure > 0) p = e.pressure;
+        else if (last) {
+          // мышь/палец: имитируем нажим по скорости (быстрее = тоньше)
+          const dt = Math.max(1, e.timeStamp - last.t);
+          const v = (Math.hypot(x - last.x, y - last.y) * rect.width) / dt;
+          p = last.p * 0.7 + EZ.clamp(0.78 - v * 0.22, 0.25, 0.8) * 0.3;
+        }
+        last = { x, y, p, t: e.timeStamp };
+        return [x, y, p];
+      };
+      el.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'pen') this.setPenOnly(true);
+        else if (e.pointerType === 'touch' && this.penOnly) return;
+        e.preventDefault();
+        el.setPointerCapture(e.pointerId);
+        drawing = true;
+        last = null;
+        h.start(pt(e));
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!drawing) return;
+        const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+        let moved = false;
+        for (const ev of evs.length ? evs : [e]) {
+          const rect = el.getBoundingClientRect();
+          const x = (ev.clientX - rect.left) / rect.width;
+          const y = (ev.clientY - rect.top) / rect.height;
+          if (last && Math.hypot(x - last.x, y - last.y) < 0.004) continue;
+          h.add(pt(ev));
+          moved = true;
+        }
+      });
+      const stop = () => {
+        if (!drawing) return;
+        drawing = false;
+        h.end();
+      };
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => el.addEventListener(t, stop));
+      // iPad: стилус не должен прокручивать страницу и вызывать лупу
+      el.addEventListener(
+        'touchstart',
+        (e) => {
+          const t = e.touches[0];
+          if ((t && t.touchType === 'stylus') || !this.penOnly) e.preventDefault();
+        },
+        { passive: false }
+      );
+      el.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        if ((t && t.touchType === 'stylus') || !this.penOnly) e.preventDefault();
+      }, { passive: false });
     },
 
-    down(e) {
-      e.preventDefault();
-      this.pad.setPointerCapture(e.pointerId);
-      this.last = null;
-      this.cur = [this.point(e)];
-      this.strokes.push(this.cur);
-      this.redraw();
-    },
-
-    move(e) {
-      if (!this.cur) return;
-      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-      for (const ev of evs.length ? evs : [e]) {
-        const lp = this.cur[this.cur.length - 1];
-        const rect = this.pad.getBoundingClientRect();
-        const x = (ev.clientX - rect.left) / rect.width;
-        const y = (ev.clientY - rect.top) / rect.height;
-        if (Math.hypot(x - lp[0], y - lp[1]) < 0.004) continue;
-        this.cur.push(this.point(ev));
-      }
-      this.redraw();
+    setPenOnly(on) {
+      if (this.penOnly === on) return;
+      this.penOnly = on;
+      $('ed-penonly').checked = on;
+      document.body.classList.toggle('pen-only', on);
+      if (on) EZ.toast('Обнаружен стилус: пальцем теперь можно листать, рисует только стилус');
     },
 
     undo() {
@@ -206,6 +401,12 @@
       const S = c.width;
       const dpr = window.devicePixelRatio || 1;
       ctx.clearRect(0, 0, S, S);
+      this.drawGuides(ctx, S, dpr, this.ch);
+      const ink = (this.getSettings && this.getSettings().ink) || '#1a3b8c';
+      EZ.drawGlyph(ctx, { strokes: this.strokes }, S, { color: ink, lw: 3.2 * dpr, pressure: 0.5 });
+    },
+
+    drawGuides(ctx, S, dpr, ch) {
       const line = (y, color, dash, w = 1) => {
         ctx.save();
         ctx.strokeStyle = color;
@@ -226,12 +427,10 @@
         ctx.save();
         ctx.fillStyle = 'rgba(130,130,150,0.16)';
         ctx.font = `${S * G.CAP * 1.45}px "Caveat", cursive`;
-        const w = ctx.measureText(this.ch).width;
-        ctx.fillText(this.ch, (S - w) / 2, G.BASE * S);
+        const w = ctx.measureText(ch).width;
+        ctx.fillText(ch, (S - w) / 2, G.BASE * S);
         ctx.restore();
       }
-      const ink = (this.getSettings && this.getSettings().ink) || '#1a3b8c';
-      EZ.drawGlyph(ctx, { strokes: this.strokes }, S, { color: ink, lw: 3.2 * dpr, pressure: 0.5 });
     },
 
     // ---------- интерфейс ----------
@@ -249,6 +448,7 @@
           this.tab = i;
           this.renderTabs();
           this.renderTiles();
+          this.renderSheet();
           $('ed-extra-row').hidden = cs.id !== 'extra';
         };
         box.appendChild(b);
@@ -326,7 +526,7 @@
       if (!this.hw) return;
       const c = $('ed-test');
       const wrap = c.parentElement;
-      const w = Math.max(280, wrap.clientWidth || 400);
+      const w = Math.min(700, Math.max(280, wrap.clientWidth || 400));
       c.width = w * 2;
       c.height = 200;
       const s = { ...this.getSettings(), size: 30, lineHeight: 80, top: 0, paperColor: '#ffffff', seed: 7 };

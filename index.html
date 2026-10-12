@@ -189,9 +189,26 @@
     <div class="progress"><div id="ed-progress-bar"></div></div>
     <p class="muted small" id="ed-progress-text"></p>
 
-    <div class="ed-body">
+    <div class="ed-toolbar">
+      <div class="segmented two">
+        <label><input type="radio" name="edmode" value="sheet"><span>📝 Листом — все буквы сразу (iPad)</span></label>
+        <label><input type="radio" name="edmode" value="single"><span>🔍 По одной букве</span></label>
+      </div>
+      <label class="check small"><input type="checkbox" id="ed-penonly"> Рисует только стилус (ладонь и палец не мешают)</label>
+    </div>
+    <div class="tabs" id="ed-tabs"></div>
+
+    <div id="ed-sheet" hidden>
+      <div class="sheet-hint">
+        <span>Пишите каждую букву в её клетке, как в бланке: низ — на синей линии. Всё сохраняется само.
+        <b>+</b> — написать букву ещё раз, <b>×</b> — стереть.</span>
+        <button class="btn small" id="sh-new" title="Очистить клетки, чтобы заполнить лист ещё раз — получатся дополнительные варианты букв">Заполнить ещё раз</button>
+      </div>
+      <div class="sheet" id="sh-grid"></div>
+    </div>
+
+    <div class="ed-body" id="ed-single">
       <div class="ed-left">
-        <div class="tabs" id="ed-tabs"></div>
         <div class="tiles" id="ed-tiles"></div>
         <div class="row gap" id="ed-extra-row" hidden>
           <input id="ed-extra" placeholder="символ, напр. @" maxlength="10">
@@ -217,16 +234,18 @@
           <button class="btn" id="ed-save-stay" title="Shift+Enter">+ Ещё вариант</button>
           <button class="btn primary" id="ed-save-next" title="Enter">Сохранить → дальше</button>
         </div>
-        <label class="check small"><input type="checkbox" id="ed-ghost" checked> Показывать бледный образец буквы</label>
         <div class="variants" id="ed-variants"></div>
-
-        <div class="ed-test">
-          <b>Проверка почерка</b>
-          <input id="ed-test-text" value="Привет! Это мой почерк.">
-          <div class="test-wrap"><canvas id="ed-test"></canvas></div>
-          <p class="muted small" id="ed-test-missing"></p>
-        </div>
       </div>
+    </div>
+
+    <div class="ed-test">
+      <div class="row gap wrap">
+        <b>Проверка почерка</b>
+        <label class="check small"><input type="checkbox" id="ed-ghost" checked> Бледный образец буквы в клетках</label>
+      </div>
+      <input id="ed-test-text" value="Привет! Это мой почерк.">
+      <div class="test-wrap"><canvas id="ed-test"></canvas></div>
+      <p class="muted small" id="ed-test-missing"></p>
     </div>
   </main>
 
@@ -234,7 +253,8 @@
     <h2>Как пользоваться EzWrite</h2>
     <ol>
       <li><b>Почерк.</b> Возьмите встроенный, нарисуйте свой («Почерки» → «Создать свой почерк») или импортируйте почерк друга / рукописный шрифт.</li>
-      <li><b>Рисование букв.</b> Пишите букву в большом поле: низ — на синей линии, строчные — до пунктира, заглавные — до верхней линии. Хвостики (р, у, д) опускайте ниже. <kbd>Enter</kbd> — сохранить и к следующей букве, <kbd>Shift+Enter</kbd> — ещё вариант той же буквы, <kbd>Ctrl+Z</kbd> — отменить штрих.</li>
+      <li><b>Листом (iPad, планшет).</b> В мастерской выберите «Листом»: на экране появятся клетки для всех букв — пишите в них Apple Pencil или пальцем, как в бланке. Всё сохраняется само. «Заполнить ещё раз» — добавить вторые варианты букв.</li>
+      <li><b>По одной букве.</b> Пишите букву в большом поле: низ — на синей линии, строчные — до пунктира, заглавные — до верхней линии. Хвостики (р, у, д) опускайте ниже. <kbd>Enter</kbd> — сохранить и к следующей букве, <kbd>Shift+Enter</kbd> — ещё вариант той же буквы, <kbd>Ctrl+Z</kbd> — отменить штрих.</li>
       <li><b>Текст и бумага.</b> Вставьте текст, выберите линейку или клетку, цвет ручки и размер.</li>
       <li><b>Живость.</b> Пресеты «Аккуратно…Небрежно» делают буквы разными по размеру, наклону и положению. «🎲 Переписать заново» — новая случайная раскладка.</li>
       <li><b>Сохранить.</b> PNG — картинка на каждую страницу, PDF — один файл, «Печать» — сразу на принтер.</li>
