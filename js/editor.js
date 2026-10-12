@@ -221,7 +221,8 @@
 
     updateCellCount(cell) {
       const n = (this.hw.glyphs[cell.ch] || []).length;
-      cell.count.textContent = n ? `✓ ${n}` : '';
+      cell.count.textContent = n ? String(n) : '';
+      cell.count.title = n ? `Сохранено вариантов: ${n}` : '';
       cell.el.classList.toggle('done', n > 0);
     },
 
@@ -265,7 +266,7 @@
     },
 
     persist() {
-      if (!EZ.store.save(this.hw)) EZ.toast('Не удалось сохранить: хранилище браузера переполнено. Экспортируйте почерк в файл.', true);
+      if (!EZ.store.save(this.hw)) EZ.toast('Не получилось сохранить: в браузере закончилось место. Нажмите «Поделиться почерком», чтобы сохранить его в файл.', true);
       this.onChange && this.onChange(this.hw);
     },
 
@@ -340,7 +341,7 @@
       this.penOnly = on;
       $('ed-penonly').checked = on;
       document.body.classList.toggle('pen-only', on);
-      if (on) EZ.toast('Обнаружен стилус: пальцем теперь можно листать, рисует только стилус');
+      if (on) EZ.toast('Теперь рисует только стилус. Пальцем можно листать страницу.');
     },
 
     undo() {
@@ -533,7 +534,7 @@
       const missing = await EZ.renderSample(c, $('ed-test-text').value, this.hw, s);
       $('ed-test-missing').textContent = missing.length
         ? `Пока не нарисованы (взяты из шрифта): ${missing.join(' ')}`
-        : 'Все символы нарисованы вашей рукой ✓';
+        : 'Все символы нарисованы вашей рукой';
     },
   };
 

@@ -6,7 +6,7 @@
   const LS_TEXT = 'ezwrite.text.v1';
 
   const DEFAULT_TEXT =
-    'Привет! Это EzWrite — инструмент, который превращает напечатанный текст в рукописный.\n' +
+    'Здравствуйте. Это avr ezwrite — он превращает напечатанный текст в рукописный.\n' +
     'Выберите почерк, вставьте свой текст и настройте бумагу и ручку. Можно нарисовать собственный почерк по буквам или загрузить чужой — от друга или в виде шрифта.\n' +
     'Съешь же ещё этих мягких французских булок, да выпей чаю.';
 
@@ -204,7 +204,7 @@
     renderToken = 0;
   function scheduleRender() {
     clearTimeout(renderTimer);
-    $('preview-status').textContent = 'Пишем…';
+    $('preview-status').textContent = 'Пишем текст…';
     renderTimer = setTimeout(render, 180);
   }
 
@@ -223,7 +223,7 @@
       cap.innerHTML = `<span>Страница ${i + 1} из ${pages.length}</span>`;
       const dl = document.createElement('button');
       dl.className = 'btn small ghost';
-      dl.textContent = '⬇ PNG';
+      dl.textContent = 'Скачать PNG';
       dl.title = 'Скачать эту страницу картинкой';
       dl.onclick = () => downloadPng(i);
       cap.appendChild(dl);
@@ -287,7 +287,7 @@
       doc.save('ezwrite.pdf');
     } catch (e) {
       console.error(e);
-      EZ.toast('Не удалось создать PDF (нужен интернет). Используйте «Печать» → «Сохранить как PDF».', true);
+      EZ.toast('PDF не собрался: для него нужен интернет. Нажмите «Распечатать» и выберите «Сохранить как PDF».', true);
     } finally {
       btn.disabled = false;
     }
@@ -319,7 +319,7 @@
     mine.innerHTML = '';
     builtin.innerHTML = '';
     if (!EZ.store.user.length) {
-      mine.innerHTML = '<p class="muted">Здесь появятся ваши почерки и почерки друзей. Нажмите «Создать свой почерк» или импортируйте файл.</p>';
+      mine.innerHTML = '<p class="muted">Здесь появятся ваши почерки и почерки друзей. Нажмите «Создать почерк» или импортируйте файл.</p>';
     }
     const jobs = [];
     for (const hw of EZ.store.user) jobs.push(card(hw, mine));
@@ -348,10 +348,10 @@
       b.onclick = fn;
       actions.appendChild(b);
     };
-    btn(hw.id === S.hwId ? '✓ Выбран' : 'Писать этим почерком', 'primary', () => useHandwriting(hw.id));
-    if (hw.type === 'strokes') btn('✎ Дорисовать', 'ghost', () => openEditor(hw));
+    btn(hw.id === S.hwId ? 'Выбран' : 'Писать этим почерком', 'primary', () => useHandwriting(hw.id));
+    if (hw.type === 'strokes') btn('Дорисовать', 'ghost', () => openEditor(hw));
     if (!hw.builtin) {
-      btn('⇪ Поделиться', 'ghost', () => EZ.store.exportHw(hw), 'Скачать файл почерка, чтобы отправить другу');
+      btn('Поделиться', 'ghost', () => EZ.store.exportHw(hw), 'Скачать файл почерка, чтобы отправить другу');
       btn('Удалить', 'ghost danger', () => {
         if (!confirm(`Удалить почерк «${hw.name}»? Это нельзя отменить (если нет экспортированного файла).`)) return;
         EZ.store.remove(hw.id);
@@ -363,7 +363,7 @@
     }
     el.appendChild(actions);
     box.appendChild(el);
-    await EZ.renderSample(c, 'Съешь ещё этих мягких булок, да выпей чаю!', hw, { ...S, size: 34, lineHeight: 64, top: 0, paperColor: '#ffffff', seed: 3 });
+    await EZ.renderSample(c, 'Съешь ещё этих мягких булок, да выпей чаю.', hw, { ...S, size: 34, lineHeight: 64, top: 0, paperColor: '#ffffff', seed: 3 });
   }
 
   function createHandwriting() {

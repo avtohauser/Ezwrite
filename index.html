@@ -3,20 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EzWrite — рукописный текст</title>
+  <title>avr ezwrite</title>
   <meta name="description" content="Превращает напечатанный текст в рукописный: ваш почерк, почерк друга или рукописный шрифт.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22.5' fill='%230B4248'/%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F2A5C3'/%3E%3Cstop offset='1' stop-color='%235A4FC8'/%3E%3C/linearGradient%3E%3Cpath transform='translate(22 22) scale(.56)' fill='url(%23g)' d='M50 2C53 30 70 47 98 50C70 53 53 70 50 98C47 70 30 53 2 50C30 47 47 30 50 2Z'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0B4248">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500&family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wdth,wght,ROND@6..144,25..151,1..1000,0..100&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amatic+SC&family=Bad+Script&family=Caveat&family=Comforter&family=Great+Vibes&family=Marck+Script&family=Neucha&family=Pangolin&family=Shantell+Sans&family=Underdog&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">✍️ <b>EzWrite</b><span class="muted"> — текст как от руки</span></div>
+    <a class="brand" href="#" aria-label="avr ezwrite"><svg class="star" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="avr-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2A5C3"/><stop offset="1" stop-color="#5A4FC8"/></linearGradient></defs><path fill="url(#avr-g)" d="M50 2C53 30 70 47 98 50C70 53 53 70 50 98C47 70 30 53 2 50C30 47 47 30 50 2Z"/></svg><span class="word">avr<span class="suffix">ezwrite</span></span></a>
     <nav>
-      <button class="nav-btn" data-view="write">1. Написать текст</button>
-      <button class="nav-btn" data-view="library">2. Почерки</button>
+      <button class="nav-btn" data-view="write">Написать</button>
+      <button class="nav-btn" data-view="library">Почерки</button>
       <button class="nav-btn" id="help-open" title="Как пользоваться">?</button>
     </nav>
   </header>
@@ -25,11 +28,11 @@
   <main id="view-write" class="view">
     <aside class="panel">
       <div id="welcome" class="welcome" hidden>
-        <b>Как это работает — 3 шага:</b>
+        <b>Как это работает</b>
         <ol>
-          <li>Выберите почерк (или нарисуйте свой).</li>
+          <li>Выберите почерк или нарисуйте свой.</li>
           <li>Вставьте текст и выберите бумагу и ручку.</li>
-          <li>Скачайте PNG / PDF или распечатайте.</li>
+          <li>Скачайте PNG или PDF либо распечатайте.</li>
         </ol>
         <button class="btn small" id="welcome-close">Понятно</button>
       </div>
@@ -38,9 +41,9 @@
         <h3><span class="num">1</span> Почерк</h3>
         <select id="hw-select" data-s="hwId"></select>
         <div class="row gap">
-          <button class="btn small ghost" id="hw-new">+ Нарисовать свой</button>
-          <button class="btn small ghost" id="hw-edit" hidden>✎ Дорисовать буквы</button>
-          <button class="btn small ghost" data-view="library">Все почерки…</button>
+          <button class="btn small ghost" id="hw-new">Нарисовать свой</button>
+          <button class="btn small ghost" id="hw-edit" hidden>Дорисовать буквы</button>
+          <button class="btn small ghost" data-view="library">Открыть все почерки</button>
         </div>
         <label class="field" id="fallback-row" hidden>
           <span>Если буквы нет в почерке, брать из шрифта</span>
@@ -99,14 +102,14 @@
 
       <section class="step">
         <h3><span class="num">5</span> Живость почерка</h3>
-        <p class="muted small">Настоящий почерк неровный. Выберите, насколько:</p>
+        <p class="muted small">Настоящий почерк неровный. Выберите, насколько.</p>
         <div class="presets">
           <button class="btn small ghost" data-preset="neat">Аккуратно</button>
           <button class="btn small ghost" data-preset="normal">Обычно</button>
           <button class="btn small ghost" data-preset="hurry">Торопливо</button>
           <button class="btn small ghost" data-preset="messy">Небрежно</button>
         </div>
-        <button class="btn small" id="shuffle" title="Буквы лягут чуть иначе — как если бы вы переписали текст заново">🎲 Переписать заново</button>
+        <button class="btn small" id="shuffle" title="Буквы лягут чуть иначе — как если бы вы переписали текст заново">Переписать заново</button>
         <details class="fine">
           <summary>Тонкая настройка</summary>
           <label class="field"><span>Наклон букв <output data-for="slant" data-unit="°"></output></span>
@@ -136,9 +139,9 @@
       <section class="step">
         <h3><span class="num">6</span> Сохранить</h3>
         <div class="row gap wrap">
-          <button class="btn primary" id="dl-png">⬇ PNG</button>
-          <button class="btn primary" id="dl-pdf">⬇ PDF</button>
-          <button class="btn" id="dl-print">🖨 Печать</button>
+          <button class="btn primary" id="dl-png">Скачать PNG</button>
+          <button class="btn primary" id="dl-pdf">Скачать PDF</button>
+          <button class="btn" id="dl-print">Распечатать</button>
         </div>
       </section>
     </aside>
@@ -158,15 +161,15 @@
     <div class="lib-head">
       <h2>Почерки</h2>
       <div class="row gap wrap">
-        <button class="btn primary" id="lib-new">+ Создать свой почерк</button>
-        <label class="btn">⇩ Импорт почерка друга (.json)<input type="file" id="lib-import" accept=".json,application/json" multiple hidden></label>
-        <label class="btn">⇩ Загрузить шрифт (.ttf .otf .woff)<input type="file" id="lib-font" accept=".ttf,.otf,.woff,.woff2" multiple hidden></label>
+        <button class="btn primary" id="lib-new">Создать почерк</button>
+        <label class="btn">Импортировать почерк друга<input type="file" id="lib-import" accept=".json,application/json" multiple hidden></label>
+        <label class="btn">Загрузить шрифт<input type="file" id="lib-font" accept=".ttf,.otf,.woff,.woff2" multiple hidden></label>
       </div>
     </div>
     <div class="tips">
-      <div><b>✍️ Свой почерк.</b> Нажмите «Создать свой почерк» и нарисуйте буквы мышкой, пальцем или стилусом. 2–3 варианта каждой буквы — и текст не отличить от живого.</div>
-      <div><b>👥 Почерк друга.</b> Отправьте другу ссылку на EzWrite: он рисует буквы и нажимает «Поделиться» — получится файл <code>.ezwrite.json</code>. Вы загружаете его кнопкой «Импорт».</div>
-      <div><b>🔤 Готовый шрифт.</b> Любой рукописный шрифт (например, сделанный по почерку в Calligraphr) можно загрузить кнопкой «Загрузить шрифт».</div>
+      <div><b>Свой почерк.</b> Нажмите «Создать почерк» и нарисуйте буквы мышкой, пальцем или стилусом. 2–3 варианта каждой буквы — и текст не отличить от живого.</div>
+      <div><b>Почерк друга.</b> Отправьте другу ссылку на avr ezwrite: он рисует буквы и нажимает «Поделиться» — получится файл <code>.ezwrite.json</code>. Вы загружаете его кнопкой «Импортировать почерк друга».</div>
+      <div><b>Готовый шрифт.</b> Любой рукописный шрифт в формате .ttf, .otf или .woff (например, сделанный по почерку в Calligraphr) можно загрузить кнопкой «Загрузить шрифт».</div>
     </div>
     <h3>Мои и импортированные</h3>
     <div class="cards" id="lib-mine"></div>
@@ -182,8 +185,8 @@
         <label class="field"><span>Чей почерк</span><input id="ed-author" placeholder="например, Маша"></label>
       </div>
       <div class="row gap wrap">
-        <button class="btn" id="ed-export" title="Скачать файл, чтобы отправить другу или перенести на другое устройство">⇪ Поделиться / сохранить файл</button>
-        <button class="btn primary" id="ed-use">Писать этим почерком →</button>
+        <button class="btn" id="ed-export" title="Скачать файл, чтобы отправить другу или перенести на другое устройство">Поделиться почерком</button>
+        <button class="btn primary" id="ed-use">Писать этим почерком</button>
       </div>
     </div>
     <div class="progress"><div id="ed-progress-bar"></div></div>
@@ -191,8 +194,8 @@
 
     <div class="ed-toolbar">
       <div class="segmented two">
-        <label><input type="radio" name="edmode" value="sheet"><span>📝 Листом — все буквы сразу (iPad)</span></label>
-        <label><input type="radio" name="edmode" value="single"><span>🔍 По одной букве</span></label>
+        <label><input type="radio" name="edmode" value="sheet"><span>Листом — все буквы сразу</span></label>
+        <label><input type="radio" name="edmode" value="single"><span>По одной букве</span></label>
       </div>
       <label class="check small"><input type="checkbox" id="ed-penonly"> Рисует только стилус (ладонь и палец не мешают)</label>
     </div>
@@ -218,9 +221,9 @@
 
       <div class="ed-right">
         <div class="ed-current">
-          <button class="btn small ghost" id="ed-prev" title="Предыдущая (←)">←</button>
+          <button class="btn small ghost" id="ed-prev" title="Предыдущая буква" aria-label="Предыдущая буква">‹</button>
           <div>Рисуем: <b id="ed-char" class="big-char"></b><div class="muted small" id="ed-count"></div></div>
-          <button class="btn small ghost" id="ed-skip" title="Следующая (→)">→</button>
+          <button class="btn small ghost" id="ed-skip" title="Следующая буква" aria-label="Следующая буква">›</button>
         </div>
         <div id="ed-pad-wrap" class="pad-wrap"><canvas id="ed-pad"></canvas></div>
         <div class="legend small muted">
@@ -229,10 +232,10 @@
           <span><i class="l asc"></i> заглавные и «б, д, в»</span>
         </div>
         <div class="row gap wrap ed-buttons">
-          <button class="btn ghost" id="ed-undo" title="Ctrl+Z">↶ Штрих</button>
+          <button class="btn ghost" id="ed-undo" title="Ctrl+Z">Отменить штрих</button>
           <button class="btn ghost" id="ed-clear" title="Esc">Очистить</button>
-          <button class="btn" id="ed-save-stay" title="Shift+Enter">+ Ещё вариант</button>
-          <button class="btn primary" id="ed-save-next" title="Enter">Сохранить → дальше</button>
+          <button class="btn" id="ed-save-stay" title="Shift+Enter">Добавить вариант</button>
+          <button class="btn primary" id="ed-save-next" title="Enter">Сохранить и дальше</button>
         </div>
         <div class="variants" id="ed-variants"></div>
       </div>
@@ -243,20 +246,20 @@
         <b>Проверка почерка</b>
         <label class="check small"><input type="checkbox" id="ed-ghost" checked> Бледный образец буквы в клетках</label>
       </div>
-      <input id="ed-test-text" value="Привет! Это мой почерк.">
+      <input id="ed-test-text" value="Привет, это мой почерк.">
       <div class="test-wrap"><canvas id="ed-test"></canvas></div>
       <p class="muted small" id="ed-test-missing"></p>
     </div>
   </main>
 
   <dialog id="help">
-    <h2>Как пользоваться EzWrite</h2>
+    <h2>Как пользоваться avr ezwrite</h2>
     <ol>
       <li><b>Почерк.</b> Возьмите встроенный, нарисуйте свой («Почерки» → «Создать свой почерк») или импортируйте почерк друга / рукописный шрифт.</li>
       <li><b>Листом (iPad, планшет).</b> В мастерской выберите «Листом»: на экране появятся клетки для всех букв — пишите в них Apple Pencil или пальцем, как в бланке. Всё сохраняется само. «Заполнить ещё раз» — добавить вторые варианты букв.</li>
       <li><b>По одной букве.</b> Пишите букву в большом поле: низ — на синей линии, строчные — до пунктира, заглавные — до верхней линии. Хвостики (р, у, д) опускайте ниже. <kbd>Enter</kbd> — сохранить и к следующей букве, <kbd>Shift+Enter</kbd> — ещё вариант той же буквы, <kbd>Ctrl+Z</kbd> — отменить штрих.</li>
       <li><b>Текст и бумага.</b> Вставьте текст, выберите линейку или клетку, цвет ручки и размер.</li>
-      <li><b>Живость.</b> Пресеты «Аккуратно…Небрежно» делают буквы разными по размеру, наклону и положению. «🎲 Переписать заново» — новая случайная раскладка.</li>
+      <li><b>Живость.</b> Пресеты от «Аккуратно» до «Небрежно» делают буквы разными по размеру, наклону и положению. «Переписать заново» — новая случайная раскладка.</li>
       <li><b>Сохранить.</b> PNG — картинка на каждую страницу, PDF — один файл, «Печать» — сразу на принтер.</li>
     </ol>
     <p class="muted small">Все почерки хранятся только в вашем браузере. Чтобы перенести почерк на другое устройство или отправить другу — нажмите «Поделиться».</p>
